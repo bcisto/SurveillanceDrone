@@ -2,7 +2,7 @@ import time
 import math
 from picarx import Picarx
 from face_scanner import FaceScanner
-from movement_control import MovementControl
+from camera_movement import MovementControl
 
 class AutonomousDrive:
     def __init__(self):
