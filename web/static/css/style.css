@@ -11,6 +11,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 2rem;
 }
 
 .container {
@@ -18,8 +19,15 @@ body {
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 500px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
 }
 
 h1 {
@@ -28,10 +36,27 @@ h1 {
     margin-bottom: 2rem;
 }
 
+h2 {
+    text-align: center;
+    color: #1a1a1a;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+h3 {
+    color: #2196f3;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
 .control-panel {
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
 }
 
 .speed-control {
@@ -103,18 +128,104 @@ h1 {
     background: #d32f2f;
 }
 
+.metrics-panel {
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.metric-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+}
+
+.metric-card .iconify {
+    font-size: 2rem;
+    color: #2196f3;
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2196f3;
+    margin-top: 0.5rem;
+}
+
+.sensor-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.sensor-group {
+    text-align: center;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.grayscale-values {
+    display: flex;
+    justify-content: space-around;
+    font-size: 1.1rem;
+}
+
+.grayscale-values div {
+    padding: 0.5rem;
+}
+
 .status {
-    margin-top: 2rem;
     text-align: center;
     padding: 1rem;
     border-radius: 8px;
     background: #e8f5e9;
     color: #2e7d32;
+    margin-top: 1rem;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 1024px) {
+    .dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+
     .container {
         padding: 1rem;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sensor-details {
+        grid-template-columns: 1fr;
     }
     
     .control-btn {

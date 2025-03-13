@@ -6,6 +6,59 @@ document.addEventListener('DOMContentLoaded', () => {
     let isMoving = false;
     let currentDirection = 0;
 
+    // Sensor elements
+    const sensorElements = {
+        // System metrics
+        batteryLevel: document.getElementById('battery-level'),
+        cpuTemp: document.getElementById('cpu-temp'),
+        currentSpeed: document.getElementById('current-speed'),
+        totalDistance: document.getElementById('total-distance')
+    };
+
+    // Function to update sensor displays
+    function updateSensorDisplays(data) {
+        if (data.system) {
+            // Battery (not implemented)
+            sensorElements.batteryLevel.textContent = 'N/A';
+            sensorElements.batteryLevel.previousElementSibling.style.color = '#9e9e9e';
+            
+            // Temperature (implemented)
+            const temp = data.system.temperature;
+            sensorElements.cpuTemp.textContent = `${temp.toFixed(1)}°C`;
+            
+            // Update temperature icon color based on value
+            const tempIcon = sensorElements.cpuTemp.previousElementSibling;
+            if (temp > 80) {
+                tempIcon.style.color = '#f44336'; // Red for high temp
+                sensorElements.cpuTemp.style.color = '#f44336';
+            } else if (temp > 70) {
+                tempIcon.style.color = '#ff9800'; // Orange for medium temp
+                sensorElements.cpuTemp.style.color = '#ff9800';
+            } else {
+                tempIcon.style.color = '#4caf50'; // Green for good temp
+                sensorElements.cpuTemp.style.color = '#4caf50';
+            }
+            
+            // Speed and distance (implemented)
+            sensorElements.currentSpeed.textContent = `${(data.system.speed).toFixed(2)} m/s`;
+            sensorElements.totalDistance.textContent = `${data.system.total_distance.toFixed(1)} m`;
+        }
+    }
+
+    // Function to fetch sensor data
+    async function fetchSensorData() {
+        try {
+            const response = await fetch('/status');
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                updateSensorDisplays(data);
+            }
+        } catch (error) {
+            console.error('Error fetching sensor data:', error);
+        }
+    }
+
     // Update speed value display
     speedSlider.addEventListener('input', (e) => {
         currentSpeed = parseInt(e.target.value);
@@ -157,4 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
             sendCommand('stop');
         }
     });
+
+    // Start periodic sensor updates
+    fetchSensorData(); // Initial fetch
+    setInterval(fetchSensorData, 200); // Update every 200ms
 }); 
