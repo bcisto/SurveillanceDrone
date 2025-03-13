@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PiCar-X Control Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>PiCar-X Control Panel</h1>
+        
+        <div class="control-panel">
+            <div class="speed-control">
+                <label for="speed">Speed (0-100):</label>
+                <input type="range" id="speed" min="0" max="100" value="50">
+                <span id="speed-value">50</span>
+            </div>
+
+            <div class="direction-controls">
+                <button id="forward" class="control-btn">↑</button>
+                <div class="middle-row">
+                    <button id="left" class="control-btn">←</button>
+                    <button id="stop" class="control-btn">⏹</button>
+                    <button id="right" class="control-btn">→</button>
+                </div>
+                <button id="backward" class="control-btn">↓</button>
+            </div>
+        </div>
+
+        <div id="status" class="status">Ready</div>
+    </div>
+    <script src="{{ url_for('static', filename='js/control.js') }}"></script>
+</body>
+</html> 

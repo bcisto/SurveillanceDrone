@@ -5,6 +5,8 @@ bk/
 build/
 dist/
 
+venv/
+
 musics/
 
 sounds/

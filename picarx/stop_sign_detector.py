@@ -13,6 +13,15 @@ class StopSignDetector:
         self.x_angle = 0
         self.y_angle = 0
         
+        # Test wheel movement at startup
+        print("Testing wheel movement...")
+        self.px.set_dir_servo_angle(30)
+        time.sleep(1)
+        self.px.set_dir_servo_angle(-30)
+        time.sleep(1)
+        self.px.set_dir_servo_angle(0)
+        print("Wheel test complete")
+        
         # Initialize Vilib camera and detection
         Vilib.camera_start(vflip=False, hflip=False)
         Vilib.display(local=False, web=True)
@@ -20,38 +29,61 @@ class StopSignDetector:
         
         # Configure object detection
         Vilib.detect_obj_parameter['threshold'] = confidence_threshold
-        Vilib.detect_obj_parameter['target_n'] = 1  # Number of target objects
-        Vilib.object_detect_switch(True)  # Enable object detection
+        Vilib.detect_obj_parameter['target_n'] = 1
+        Vilib.object_detect_switch(True)
+        print("Object detection configured")
         
     def track_stop_sign(self):
-        """Track stop sign with camera if detected."""
-        if Vilib.detect_obj_parameter.get('object_n', 0) > 0:
-            # Get coordinates of detected object
-            x = Vilib.detect_obj_parameter.get('object_x', 0)
-            y = Vilib.detect_obj_parameter.get('object_y', 0)
+        """Track stop sign with camera if detected and turn wheels."""
+        try:
+            # Check if any object is detected
+            detected = False
+            if Vilib.detect_obj_parameter.get('object_n', 0) > 0:
+                # Check if the detected object is a stop sign
+                class_name = Vilib.detect_obj_parameter.get('class_name', '')
+                confidence = Vilib.detect_obj_parameter.get('confidence', 0)
+                print(f"Detected object class: {class_name}, confidence: {confidence}")
+                
+                if 'stop' in class_name.lower():
+                    detected = True
+                    x = Vilib.detect_obj_parameter.get('object_x', 0)
+                    y = Vilib.detect_obj_parameter.get('object_y', 0)
+                    print(f"Stop sign location: x={x}, y={y}")
+                    
+                    # Force wheel movement for testing
+                    print("Forcing wheel movement test...")
+                    print("Turning wheels right")
+                    self.px.set_dir_servo_angle(30)
+                    time.sleep(0.5)
+                    print("Turning wheels left")
+                    self.px.set_dir_servo_angle(-30)
+                    time.sleep(0.5)
+                    print("Centering wheels")
+                    self.px.set_dir_servo_angle(0)
+                    
+                    return True
             
-            # Update camera angles to track object
-            self.x_angle += (x * 10 / 640) - 5
-            self.x_angle = clamp_number(self.x_angle, -35, 35)
-            self.px.set_cam_pan_angle(self.x_angle)
+            if not detected:
+                print("No stop sign detected in this frame")
+            return False
+                
+        except Exception as e:
+            print(f"Error in track_stop_sign: {e}")
+            return False
             
-            self.y_angle -= (y * 10 / 480) - 5
-            self.y_angle = clamp_number(self.y_angle, -35, 35)
-            self.px.set_cam_tilt_angle(self.y_angle)
-            
-            return True
-        return False
-    
     def get_stop_sign_info(self):
         """Get current stop sign detection information."""
         if Vilib.detect_obj_parameter.get('object_n', 0) > 0:
-            return {
-                'detected': True,
-                'x': Vilib.detect_obj_parameter.get('object_x', 0),
-                'y': Vilib.detect_obj_parameter.get('object_y', 0),
-                'width': Vilib.detect_obj_parameter.get('object_w', 0),
-                'height': Vilib.detect_obj_parameter.get('object_h', 0)
-            }
+            class_name = Vilib.detect_obj_parameter.get('class_name', '')
+            if 'stop' in class_name.lower():
+                return {
+                    'detected': True,
+                    'x': Vilib.detect_obj_parameter.get('object_x', 0),
+                    'y': Vilib.detect_obj_parameter.get('object_y', 0),
+                    'width': Vilib.detect_obj_parameter.get('object_w', 0),
+                    'height': Vilib.detect_obj_parameter.get('object_h', 0),
+                    'confidence': Vilib.detect_obj_parameter.get('confidence', 0)
+                }
         return {'detected': False}
     
     def cleanup(self):

@@ -7,6 +7,7 @@ from typing import List, Tuple, Set
 import tflite_runtime.interpreter as tflite
 import cv2
 import os
+from vilib import Vilib  # Add Vilib import
 
 class Navigator:
     def __init__(self):
@@ -14,6 +15,11 @@ class Navigator:
         self.current_x = 0  # inches
         self.current_y = 0  # inches
         self.current_angle = 0  # degrees, 0 is north
+        
+        # Initialize camera and web display
+        Vilib.camera_start(vflip=False, hflip=False)
+        Vilib.display(local=False, web=True)  # Enable web display only
+        time.sleep(0.8)  # Wait for camera to initialize
         
         # Constants for movement
         self.SPEED = 25  # Reduced speed for better control
@@ -581,7 +587,7 @@ class Navigator:
         return True  # Return True to allow replanning after backing up
 
     def cleanup_servos(self):
-        """Reset all servos to their zero positions."""
+        """Reset all servos to their zero positions and cleanup resources."""
         print("Zeroing all servos...")
         
         # Stop camera panning immediately
@@ -618,6 +624,13 @@ class Navigator:
         # One final force to zero position
         self.px.set_cam_pan_angle(0)
         self.px.set_dir_servo_angle(0)
+        
+        # Close camera and web display
+        print("Closing camera...")
+        Vilib.camera_close()
+        
+        if self.camera:
+            self.camera.release()
 
     def navigate_to_goal(self, goal_x: float, goal_y: float):
         """Navigate to goal using A* pathfinding with periodic replanning."""
