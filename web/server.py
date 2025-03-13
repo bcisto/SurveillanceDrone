@@ -4,6 +4,13 @@ from time import sleep, time
 import psutil  # For CPU temp and battery
 import os
 
+# Import Robot HAT for direct ADC access
+try:
+    from robot_hat import ADC
+    print("Successfully imported robot_hat.ADC")
+except Exception as e:
+    print(f"Error importing robot_hat.ADC: {e}")
+
 app = Flask(__name__)
 
 # Store the current state and metrics
@@ -14,6 +21,20 @@ current_state = {
     'total_distance': 0,  # in meters
     'last_update_time': time()  # Initialize with current time
 }
+
+# Initialize ADC for battery reading
+try:
+    # Battery voltage is connected to A4 through a voltage divider
+    battery_adc = ADC('A4')
+    voltage = battery_adc.read_voltage()
+    print(f"Battery ADC A4 voltage reading: {voltage:.2f}V")
+    print(f"Calculated battery voltage: {voltage * 3:.2f}V")
+    
+    if not battery_adc:
+        print("Warning: Failed to initialize battery ADC")
+except Exception as e:
+    print(f"Error initializing ADC: {e}")
+    battery_adc = None
 
 def get_cpu_temperature():
     try:
@@ -31,10 +52,35 @@ def get_cpu_temperature():
 
 def get_battery_level():
     try:
-        # This is a placeholder - you'll need to implement actual battery reading
-        # based on your hardware setup
-        return 85  # Return dummy value for now
-    except:
+        if not battery_adc:
+            print("ADC not initialized")
+            return 0
+            
+        # Read voltage from A4
+        adc_voltage = battery_adc.read_voltage()
+        # Calculate actual battery voltage (voltage divider ratio 20K/10K)
+        battery_voltage = adc_voltage * 3
+        
+        print(f"ADC voltage: {adc_voltage:.2f}V, Battery voltage: {battery_voltage:.2f}V")
+        
+        # Convert voltage to percentage
+        # For a 2S Li-Po battery:
+        # 8.4V = 100% (fully charged)
+        # 6.0V = 0% (cutoff voltage)
+        MAX_VOLTAGE = 8.4
+        MIN_VOLTAGE = 6.0
+        voltage_range = MAX_VOLTAGE - MIN_VOLTAGE
+        
+        # Calculate percentage
+        percentage = ((battery_voltage - MIN_VOLTAGE) / voltage_range) * 100
+        
+        # Clamp between 0 and 100
+        percentage = max(0, min(100, percentage))
+        
+        print(f"Calculated battery percentage: {percentage:.1f}%")
+        return percentage
+    except Exception as e:
+        print(f"Error reading battery: {type(e).__name__}: {e}")
         return 0
 
 def update_distance_and_speed(current_speed):
@@ -62,6 +108,8 @@ def status():
     try:
         # Get system metrics
         cpu_temp = get_cpu_temperature()
+        battery = get_battery_level()
+        print(f"Status update - Battery: {battery}%, CPU Temp: {cpu_temp}°C")
         
         # Update distance and get current speed in m/s
         current_speed = update_distance_and_speed(abs(current_state['speed']))
@@ -70,6 +118,7 @@ def status():
             'status': 'success',
             'system': {
                 'temperature': cpu_temp,
+                'battery': battery,
                 'speed': current_speed,
                 'total_distance': current_state['total_distance']
             },
@@ -121,6 +170,16 @@ if __name__ == '__main__':
     try:
         px = Picarx()
         print("PicarX initialized successfully")
+        
+        # Debug: Check available methods
+        print("\nChecking available battery reading methods:")
+        print("get_battery_voltage:", hasattr(px, 'get_battery_voltage'))
+        print("get_power_voltage:", hasattr(px, 'get_power_voltage'))
+        print("get_voltage:", hasattr(px, 'get_voltage'))
+        if hasattr(px, 'adc'):
+            print("ADC object exists")
+            print("adc.get_battery_voltage:", hasattr(px.adc, 'get_battery_voltage'))
+        
         app.run(host='0.0.0.0', port=5000, debug=False)
     finally:
         # Proper cleanup like in keyboard example

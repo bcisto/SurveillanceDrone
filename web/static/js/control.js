@@ -18,9 +18,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to update sensor displays
     function updateSensorDisplays(data) {
         if (data.system) {
-            // Battery (not implemented)
-            sensorElements.batteryLevel.textContent = 'N/A';
-            sensorElements.batteryLevel.previousElementSibling.style.color = '#9e9e9e';
+            // Battery level
+            const battery = data.system.battery;
+            sensorElements.batteryLevel.textContent = `${battery.toFixed(1)}%`;
+            
+            // Update battery icon color based on level
+            const batteryIcon = sensorElements.batteryLevel.previousElementSibling;
+            if (battery < 20) {
+                batteryIcon.style.color = '#f44336'; // Red for low battery
+                sensorElements.batteryLevel.style.color = '#f44336';
+            } else if (battery < 50) {
+                batteryIcon.style.color = '#ff9800'; // Orange for medium battery
+                sensorElements.batteryLevel.style.color = '#ff9800';
+            } else {
+                batteryIcon.style.color = '#4caf50'; // Green for good battery
+                sensorElements.batteryLevel.style.color = '#4caf50';
+            }
+            
+            // Also update the battery icon data
+            batteryIcon.setAttribute('data-icon', `mdi:battery${battery >= 90 ? '' : battery >= 70 ? '-80' : battery >= 50 ? '-60' : battery >= 30 ? '-40' : battery >= 10 ? '-20' : '-outline'}`);
             
             // Temperature (implemented)
             const temp = data.system.temperature;
